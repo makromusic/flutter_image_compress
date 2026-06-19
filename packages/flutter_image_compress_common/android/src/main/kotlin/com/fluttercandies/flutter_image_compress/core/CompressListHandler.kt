@@ -23,7 +23,7 @@ class CompressListHandler(private val call: MethodCall, result: MethodChannel.Re
             val format = args[6] as Int
             val keepExif = args[7] as Boolean
             val inSampleSize = args[8] as Int
-            val exifRotate = if (autoCorrectionAngle) Exif.getRotationDegrees(arr) else 0
+            val exifRotate = if (autoCorrectionAngle) Exif.getCorrectionRotation(arr) else 0
             val flip = if (autoCorrectionAngle) Exif.isFlipped(arr) else false
             if (exifRotate == 270 || exifRotate == 90) {
                 val tmp = minWidth
