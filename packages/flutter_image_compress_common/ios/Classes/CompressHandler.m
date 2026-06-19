@@ -29,7 +29,11 @@
     }
 
     image = [image scaleWithMinWidth:minWidth minHeight:minHeight];
-    if(rotate % 360 != 0){
+    // A negative rotate is the Dart-side sentinel for an explicit horizontal
+    // mirror (matches the Android handler); it carries no rotation.
+    if(rotate < 0){
+        image = [image flipHorizontal];
+    } else if(rotate % 360 != 0){
         image = [image rotate: rotate];
     }
     NSData *resultData = [self compressDataWithImage:image quality:quality format:format];
@@ -41,7 +45,11 @@
 + (NSData *)compressDataWithUIImage:(UIImage *)image minWidth:(int)minWidth minHeight:(int)minHeight
                             quality:(int)quality rotate:(int)rotate format:(int)format {
     image = [image scaleWithMinWidth:minWidth minHeight:minHeight];
-    if(rotate % 360 != 0){
+    // A negative rotate is the Dart-side sentinel for an explicit horizontal
+    // mirror (matches the Android handler); it carries no rotation.
+    if(rotate < 0){
+        image = [image flipHorizontal];
+    } else if(rotate % 360 != 0){
         image = [image rotate: rotate];
     }
     return [self compressDataWithImage:image quality:quality format:format];

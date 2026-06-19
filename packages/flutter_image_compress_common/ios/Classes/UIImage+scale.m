@@ -42,6 +42,20 @@
     return [self imageRotatedByDegrees:self deg:rotate];
 }
 
+// Pure horizontal mirror. drawInRect normalizes the image orientation first, so
+// the result is upright and flipped — no rotation introduced.
+- (UIImage *)flipHorizontal{
+    CGSize size = self.size;
+    UIGraphicsBeginImageContextWithOptions(size, NO, self.scale);
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextTranslateCTM(ctx, size.width, 0);
+    CGContextScaleCTM(ctx, -1.0, 1.0);
+    [self drawInRect:CGRectMake(0, 0, size.width, size.height)];
+    UIImage *flipped = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return flipped ?: self;
+}
+
 - (UIImage *)imageRotatedByDegrees:(UIImage*)oldImage deg:(CGFloat)degrees{
     if([ImageCompressPlugin showLog]) {
         NSLog(@"will rotate %f",degrees);
