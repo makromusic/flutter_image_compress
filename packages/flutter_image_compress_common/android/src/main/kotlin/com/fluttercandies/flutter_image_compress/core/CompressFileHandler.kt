@@ -32,12 +32,9 @@ class CompressFileHandler(private val call: MethodCall, result: MethodChannel.Re
                 reply(null)
                 return@execute
             }
-            val exifRotate = if (autoCorrectionAngle) {
-                val bytes = File(filePath).readBytes()
-                Exif.getRotationDegrees(bytes)
-            } else {
-                0
-            }
+            val autoBytes = if (autoCorrectionAngle) File(filePath).readBytes() else null
+            val exifRotate = if (autoBytes != null) Exif.getRotationDegrees(autoBytes) else 0
+            val flip = if (autoBytes != null) Exif.isFlipped(autoBytes) else false
             if (exifRotate == 270 || exifRotate == 90) {
                 val tmp = minWidth
                 minWidth = minHeight
@@ -54,6 +51,7 @@ class CompressFileHandler(private val call: MethodCall, result: MethodChannel.Re
                     minHeight,
                     quality,
                     targetRotate,
+                    flip,
                     keepExif,
                     inSampleSize,
                     numberOfRetries
@@ -84,6 +82,7 @@ class CompressFileHandler(private val call: MethodCall, result: MethodChannel.Re
             } else {
                 0
             }
+            val flip = if (autoCorrectionAngle) Exif.isFlipped(File(file)) else false
             val format = args[7] as Int
             val keepExif = args[8] as Boolean
             val inSampleSize = args[9] as Int
@@ -111,6 +110,7 @@ class CompressFileHandler(private val call: MethodCall, result: MethodChannel.Re
                     minHeight,
                     quality,
                     targetRotate,
+                    flip,
                     keepExif,
                     inSampleSize,
                     numberOfRetries

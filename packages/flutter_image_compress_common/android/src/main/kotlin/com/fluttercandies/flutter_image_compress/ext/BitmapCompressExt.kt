@@ -8,9 +8,9 @@ import java.io.OutputStream
 import kotlin.math.max
 import kotlin.math.min
 
-fun Bitmap.compress(minWidth: Int, minHeight: Int, quality: Int, rotate: Int = 0, format: Int): ByteArray {
+fun Bitmap.compress(minWidth: Int, minHeight: Int, quality: Int, rotate: Int = 0, flip: Boolean = false, format: Int): ByteArray {
     val outputStream = ByteArrayOutputStream()
-    compress(minWidth, minHeight, quality, rotate, outputStream, format)
+    compress(minWidth, minHeight, quality, rotate, flip, outputStream, format)
     return outputStream.toByteArray()
 }
 
@@ -19,6 +19,7 @@ fun Bitmap.compress(
     minHeight: Int,
     quality: Int,
     rotate: Int = 0,
+    flip: Boolean = false,
     outputStream: OutputStream,
     format: Int = 0
 ) {
@@ -36,7 +37,7 @@ fun Bitmap.compress(
         this,
         destW.toInt(),
         destH.toInt(), true
-    ).rotate(rotate).compress(convertFormatIndexToFormat(format), quality, outputStream)
+    ).rotate(rotate, flip).compress(convertFormatIndexToFormat(format), quality, outputStream)
 }
 
 private fun log(any: Any?) {
@@ -45,15 +46,14 @@ private fun log(any: Any?) {
     }
 }
 
-fun Bitmap.rotate(rotate: Int): Bitmap {
-    return if (rotate % 360 != 0) {
-        val matrix = Matrix()
-        matrix.setRotate(rotate.toFloat())
-        // 围绕原地进行旋转
-        Bitmap.createBitmap(this, 0, 0, width, height, matrix, false)
-    } else {
-        this
-    }
+fun Bitmap.rotate(rotate: Int, flip: Boolean = false): Bitmap {
+    if (rotate % 360 == 0 && !flip) return this
+    val matrix = Matrix()
+    matrix.setRotate(rotate.toFloat())
+    // Apply the horizontal mirror carried by flipped EXIF orientations (2/4/5/7);
+    // ExifInterface.rotationDegrees drops it, leaving front-camera selfies wrong.
+    if (flip) matrix.postScale(-1f, 1f)
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, false)
 }
 
 fun Bitmap.calcScale(minWidth: Int, minHeight: Int): Float {

@@ -33,10 +33,11 @@ class CommonHandler(override val type: Int) : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int,
+        flip: Boolean,
         keepExif: Boolean,
         inSampleSize: Int
     ) {
-        val result = compress(byteArray, minWidth, minHeight, quality, rotate, inSampleSize)
+        val result = compress(byteArray, minWidth, minHeight, quality, rotate, flip, inSampleSize)
         if (keepExif && bitmapFormat == Bitmap.CompressFormat.JPEG) {
             val byteArrayOutputStream = ByteArrayOutputStream()
             byteArrayOutputStream.write(result)
@@ -56,6 +57,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int = 0,
+        flip: Boolean = false,
         inSampleSize: Int
     ): ByteArray {
         val options = BitmapFactory.Options()
@@ -82,7 +84,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
             bitmap, destW.toInt(),
             destH.toInt(),
             true
-        ).rotate(rotate).compress(bitmapFormat, quality, outputStream)
+        ).rotate(rotate, flip).compress(bitmapFormat, quality, outputStream)
         return outputStream.toByteArray()
     }
 
@@ -95,6 +97,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int,
+        flip: Boolean,
         keepExif: Boolean,
         inSampleSize: Int,
         numberOfRetries: Int
@@ -110,7 +113,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
                 options.inDither = true
             }
             val bitmap = BitmapFactory.decodeFile(path, options)
-            val array = bitmap.compress(minWidth, minHeight, quality, rotate, type)
+            val array = bitmap.compress(minWidth, minHeight, quality, rotate, flip, type)
             if (keepExif && bitmapFormat == Bitmap.CompressFormat.JPEG) {
                 val byteArrayOutputStream = ByteArrayOutputStream()
                 byteArrayOutputStream.write(array)
@@ -132,6 +135,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
                 minHeight,
                 quality,
                 rotate,
+                flip,
                 keepExif,
                 inSampleSize * 2,
                 numberOfRetries - 1
