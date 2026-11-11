@@ -34,12 +34,9 @@ class CompressFileHandler(private val call: MethodCall, result: MethodChannel.Re
             }
             val outputStream = ByteArrayOutputStream()
             try {
-                val exifRotate = if (autoCorrectionAngle) {
-                    val bytes = File(filePath).readBytes()
-                    Exif.getRotationDegrees(bytes)
-                } else {
-                    0
-                }
+                val autoBytes = if (autoCorrectionAngle) File(filePath).readBytes() else null
+                val exifRotate = if (autoBytes != null) Exif.getCorrectionRotation(autoBytes) else 0
+                val flip = if (autoBytes != null) Exif.isFlipped(autoBytes) else false
                 if (exifRotate == 270 || exifRotate == 90) {
                     val tmp = minWidth
                     minWidth = minHeight
@@ -54,6 +51,7 @@ class CompressFileHandler(private val call: MethodCall, result: MethodChannel.Re
                     minHeight,
                     quality,
                     targetRotate,
+                    flip,
                     keepExif,
                     inSampleSize,
                     numberOfRetries
@@ -92,10 +90,11 @@ class CompressFileHandler(private val call: MethodCall, result: MethodChannel.Re
             var outputStream: OutputStream? = null
             try {
                 val exifRotate = if (autoCorrectionAngle) {
-                    Exif.getRotationDegrees(File(file))
+                    Exif.getCorrectionRotation(File(file))
                 } else {
                     0
                 }
+                val flip = if (autoCorrectionAngle) Exif.isFlipped(File(file)) else false
                 if (exifRotate == 270 || exifRotate == 90) {
                     val tmp = minWidth
                     minWidth = minHeight
@@ -112,6 +111,7 @@ class CompressFileHandler(private val call: MethodCall, result: MethodChannel.Re
                     minHeight,
                     quality,
                     targetRotate,
+                    flip,
                     keepExif,
                     inSampleSize,
                     numberOfRetries

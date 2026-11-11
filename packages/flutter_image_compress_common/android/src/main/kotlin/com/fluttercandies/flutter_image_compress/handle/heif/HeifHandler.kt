@@ -27,12 +27,13 @@ class HeifHandler : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int,
+        flip: Boolean,
         keepExif: Boolean,
         inSampleSize: Int
     ) {
         val tmpFile = TmpFileUtil.createTmpFile(context)
         try {
-            compress(byteArray, minWidth, minHeight, quality, rotate, inSampleSize, tmpFile.absolutePath)
+            compress(byteArray, minWidth, minHeight, quality, rotate, flip, inSampleSize, tmpFile.absolutePath)
             // Warn only after compression actually produced a HEIC — otherwise
             // a HeifWriter failure (OOM, missing hardware encoder) gets
             // misattributed to the keepExif path in bug triage.
@@ -49,12 +50,13 @@ class HeifHandler : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int = 0,
+        flip: Boolean = false,
         inSampleSize: Int,
         targetPath: String
     ) {
         val options = makeOption(inSampleSize)
         val bitmap = BitmapFactory.decodeByteArray(arr, 0, arr.count(), options)
-        convertToHeif(bitmap, minWidth, minHeight, rotate, targetPath, quality)
+        convertToHeif(bitmap, minWidth, minHeight, rotate, flip, targetPath, quality)
     }
 
     private fun compress(
@@ -63,12 +65,13 @@ class HeifHandler : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int = 0,
+        flip: Boolean = false,
         inSampleSize: Int,
         targetPath: String
     ) {
         val options = makeOption(inSampleSize)
         val bitmap = BitmapFactory.decodeFile(path, options)
-        convertToHeif(bitmap, minWidth, minHeight, rotate, targetPath, quality)
+        convertToHeif(bitmap, minWidth, minHeight, rotate, flip, targetPath, quality)
     }
 
     private fun makeOption(inSampleSize: Int): BitmapFactory.Options {
@@ -88,6 +91,7 @@ class HeifHandler : FormatHandler {
         minWidth: Int,
         minHeight: Int,
         rotate: Int,
+        flip: Boolean,
         targetPath: String,
         quality: Int
     ) {
@@ -107,7 +111,7 @@ class HeifHandler : FormatHandler {
             destH.toInt(),
             true
         )
-        val result = scaled.rotate(rotate)
+        val result = scaled.rotate(rotate, flip)
         try {
             val heifWriter = HeifWriter.Builder(
                 targetPath,
@@ -141,13 +145,14 @@ class HeifHandler : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int,
+        flip: Boolean,
         keepExif: Boolean,
         inSampleSize: Int,
         numberOfRetries: Int
     ) {
         val tmpFile = TmpFileUtil.createTmpFile(context)
         try {
-            compress(path, minWidth, minHeight, quality, rotate, inSampleSize, tmpFile.absolutePath)
+            compress(path, minWidth, minHeight, quality, rotate, flip, inSampleSize, tmpFile.absolutePath)
             warnKeepExifUnsupported(keepExif)
             outputStream.write(tmpFile.readBytes())
         } finally {

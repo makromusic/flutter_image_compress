@@ -33,10 +33,11 @@ class CommonHandler(override val type: Int) : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int,
+        flip: Boolean,
         keepExif: Boolean,
         inSampleSize: Int
     ) {
-        val result = compress(byteArray, minWidth, minHeight, quality, rotate, inSampleSize)
+        val result = compress(byteArray, minWidth, minHeight, quality, rotate, flip, inSampleSize)
         if (keepExif && supportsExifWrite(bitmapFormat)) {
             // ExifKeeper writes to a tmp file and opens it via
             // ExifInterface(path). ExifInterface sniffs the container from
@@ -62,6 +63,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int = 0,
+        flip: Boolean = false,
         inSampleSize: Int
     ): ByteArray {
         val options = BitmapFactory.Options()
@@ -90,7 +92,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
                 destH.toInt(),
                 true
             )
-            val rotated = scaled.rotate(rotate)
+            val rotated = scaled.rotate(rotate, flip)
             try {
                 rotated.compress(bitmapFormat, quality, outputStream)
             } finally {
@@ -112,6 +114,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
         minHeight: Int,
         quality: Int,
         rotate: Int,
+        flip: Boolean,
         keepExif: Boolean,
         inSampleSize: Int,
         numberOfRetries: Int
@@ -128,7 +131,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
             }
             val bitmap = BitmapFactory.decodeFile(path, options)
             val array = try {
-                bitmap.compress(minWidth, minHeight, quality, rotate, type)
+                bitmap.compress(minWidth, minHeight, quality, rotate, flip, type)
             } finally {
                 bitmap.recycle()
             }
@@ -150,6 +153,7 @@ class CommonHandler(override val type: Int) : FormatHandler {
                 minHeight,
                 quality,
                 rotate,
+                flip,
                 keepExif,
                 inSampleSize * 2,
                 numberOfRetries - 1
