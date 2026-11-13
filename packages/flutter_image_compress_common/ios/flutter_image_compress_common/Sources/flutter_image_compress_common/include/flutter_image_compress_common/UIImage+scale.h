@@ -9,4 +9,5 @@
 
 - (UIImage *)scaleWithMinWidth:(CGFloat)minWidth minHeight:(CGFloat)minHeight;
 - (UIImage *)rotate:(CGFloat) rotate;
+- (UIImage *)flipHorizontal;
 @end
